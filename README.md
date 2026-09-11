@@ -105,6 +105,29 @@ Add `--json` to any command for machine-readable output.
 
 Run `gbot --help` for every command.
 
+## Use case: bridging this CLI into Claude Code
+
+I use this fork alongside a Claude Code / Cowork skill called `grok-bot-bridge`, which wraps `gbot` so a Claude Code session can read, message, and wait on my Grok Bot fleet without me manually running commands. It's not part of this repo (it's a Claude skill, not CLI code), but documenting it here since it's the actual use case that drove this fork.
+
+### How it works
+
+The skill teaches Claude Code three patterns on top of the commands above:
+
+1. **Fire-and-forget** - hand a task to a bot and move on: `gbot send <bot> "..."`, no waiting on a reply.
+2. **Send-and-wait** - when a Claude Code task genuinely depends on a bot's answer before it can continue: send the message, then poll `gbot thread <bot> --json` every 15-30s (never sub-second) up to a sane timeout, and report back if the bot hasn't replied rather than hanging silently.
+3. **Grok Bot -> Claude Code** - the harder direction. Grok Bot agents can't invoke a Claude Code session directly, there's no inbound webhook. So "the bot notifies Claude Code" really means Claude Code (or a scheduled Claude Code session) polls a bot/group's thread for new messages and reacts to them. For a one-off check this is just pattern 2 run manually; for standing bidirectional operation, the skill can set up a recurring scheduled Claude Code task that checks in every 10-15 minutes and replies via `gbot send` when there's something new, only when that's actually asked for, since it's a recurring cost.
+
+### Example prompts
+
+With the skill installed, in Claude Code I can just say things like:
+
+- "Ask my Bot Architect to design a fix ticket for X, and let me know when it's done" -> fire-and-send, then wait pattern.
+- "What's my Grok Bot fleet been up to?" -> lists bots/groups, reads recent threads.
+- "Have the Researcher bot look into Y and block until it replies" -> send-and-wait.
+- "Check every 15 minutes whether any of my bots need my attention" -> sets up the polling pattern as a scheduled task.
+
+The auth and version-gate fixes in this fork (see below) are what make any of this reliable outside macOS, since `gbot` is what the skill actually shells out to.
+
 ## What this fork changes
 
 Everything below is additive; nothing from upstream was removed or renamed, so this stays a drop-in fork.
