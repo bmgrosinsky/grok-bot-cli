@@ -47,7 +47,11 @@ export function ensureSandboxHeaders(accessToken) {
     "connect-protocol-version": "1",
     authorization: "Bearer " + accessToken,
     "x-cursor-client-type": "sand",
-    "x-cursor-client-version": process.env.SAND_CLIENT_VERSION || "0.20.0",
+    // Upstream pinned this at "0.20.0", which the backend now rejects with
+    // "This version of Grok Bot is no longer supported." Bumped to a version
+    // known to work as of this fork; override with SAND_CLIENT_VERSION if it
+    // drifts again (the backend enforces a floor, not this exact string).
+    "x-cursor-client-version": process.env.SAND_CLIENT_VERSION || "0.39.0",
     "x-sand-box-namespace": process.env.SAND_BOX_NAMESPACE || "prod",
   };
 }

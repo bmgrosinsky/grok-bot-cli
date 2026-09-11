@@ -1,7 +1,8 @@
 {
   "name": "grok-bot-cli",
-  "version": "0.2.2",
-  "description": "CLI for Grok Bot agents and groups: create, update, message, inspect threads, and automate cleanup",
+  "version": "0.3.0",
+  "private": true,
+  "description": "CLI for Grok Bot agents and groups: create, update, message, inspect threads, and automate cleanup. Fork with cross-platform (Windows/Linux) auth.",
   "type": "module",
   "bin": {
     "gbot": "src/cli.js",
@@ -11,20 +12,21 @@
     "node": ">=18"
   },
   "scripts": {
-    "changeset": "changeset",
     "gbot": "node src/cli.js",
-    "release": "changeset publish",
     "test": "node --test"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/ScriptedAlchemy/grok-bot-cli.git"
+    "url": "git+https://github.com/bmgrosinsky/grok-bot-cli.git"
   },
-  "homepage": "https://github.com/ScriptedAlchemy/grok-bot-cli#readme",
+  "homepage": "https://github.com/bmgrosinsky/grok-bot-cli#readme",
   "bugs": {
-    "url": "https://github.com/ScriptedAlchemy/grok-bot-cli/issues"
+    "url": "https://github.com/bmgrosinsky/grok-bot-cli/issues"
   },
   "author": "Zack Jackson (https://github.com/ScriptedAlchemy)",
+  "contributors": [
+    "bmgrosinsky (https://github.com/bmgrosinsky) - cross-platform auth fork"
+  ],
   "license": "MIT",
   "keywords": [
     "grok",

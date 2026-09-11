@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { ensureSandboxHeaders, headersFromEnsureSandbox, headersFromEnv, mergeGatewayHeaders, normalizeHeaderMap, requestHeaders } from "./headers.js";
 import { hasGrokBotGatewaySession, loadGrokBotGatewaySession } from "./app-session.js";
+import { hasCursorEditorSession, loadCursorEditorAccessToken } from "./editor-session.js";
 import { AVATAR_COLORS, AVATAR_SHAPES } from "./store.js";
 
 export class GatewayError extends Error {
@@ -60,7 +61,9 @@ function sessionFromApp() {
 }
 
 export function hasGatewayAuth() {
-  return Boolean(gatewayOverride() || accessTokenFromEnv() || hasGrokBotGatewaySession());
+  return Boolean(
+    gatewayOverride() || accessTokenFromEnv() || hasGrokBotGatewaySession() || hasCursorEditorSession(),
+  );
 }
 
 async function readJson(res) {
@@ -106,9 +109,17 @@ export async function connectGateway() {
   if (override) return override;
   const fromApp = sessionFromApp();
   if (fromApp) return fromApp;
-  const token = accessTokenFromEnv();
+  let token = accessTokenFromEnv();
   if (!token) {
-    throw new GatewayError("Set CURSOR_ACCESS_TOKEN, or GROK_BOT_GATEWAY_URL + GROK_BOT_GATEWAY_TOKEN. Do not use a Cursor dashboard API key.");
+    // Fallback for Windows/Linux (and macOS without the Grok Bot app):
+    // reuse the Cursor editor's own session token if one is present.
+    token = (await loadCursorEditorAccessToken().catch(() => null)) || "";
+  }
+  if (!token) {
+    throw new GatewayError(
+      "Set CURSOR_ACCESS_TOKEN, or GROK_BOT_GATEWAY_URL + GROK_BOT_GATEWAY_TOKEN. Do not use a Cursor dashboard API key. " +
+        "(No Grok Bot app session or Cursor editor session was found either.)",
+    );
   }
   return ensureSandbox(token);
 }

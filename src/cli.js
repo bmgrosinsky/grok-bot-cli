@@ -3,6 +3,7 @@ import { AVATAR_COLORS, AVATAR_SHAPES, MAX_GROUP_MEMBERS, StoreError, defaultCan
 import { hasGatewayAuth } from "./gateway.js";
 import { openBackend } from "./commands.js";
 import { inspectGrokBotGatewaySession } from "./app-session.js";
+import { inspectCursorEditorSession } from "./editor-session.js";
 
 function print(value) {
   if (typeof value === "string") process.stdout.write(value + "\n");
@@ -53,7 +54,7 @@ function usage() {
     "Avatar shapes: " + AVATAR_SHAPES.join(" "),
     "Avatar colors: " + AVATAR_COLORS.join(" "),
     "Flags: --gateway  --files  --dir DIR  --json",
-    "Auth: GROK_BOT_GATEWAY_URL + GROK_BOT_GATEWAY_TOKEN, or the Grok Bot app session, or CURSOR_ACCESS_TOKEN",
+    "Auth: GROK_BOT_GATEWAY_URL + GROK_BOT_GATEWAY_TOKEN, or the Grok Bot app session (macOS), or the Cursor editor session (any OS), or CURSOR_ACCESS_TOKEN",
     "File fallback: GROK_BOT_AGENTS_DIR",
   ].join("\n");
 }
@@ -250,7 +251,8 @@ async function main(argv) {
     const note = "Live roster is on the box. Prefer CURSOR_ACCESS_TOKEN then EnsureSandBox then POST gateway /api/*.";
     const gatewayAuthPresent = hasGatewayAuth();
     const grokBotAppSession = inspectGrokBotGatewaySession();
-    const payload = { resolved, found, candidates, gatewayAuthPresent, grokBotAppSession, note };
+    const cursorEditorSession = await inspectCursorEditorSession();
+    const payload = { resolved, found, candidates, gatewayAuthPresent, grokBotAppSession, cursorEditorSession, note };
     if (json) print(payload);
     else {
       print("resolved: " + (resolved ?? "(none)"));
@@ -258,6 +260,9 @@ async function main(argv) {
       if (grokBotAppSession.usable) print("Grok Bot app session: usable");
       else if (grokBotAppSession.present) print("Grok Bot app session: present but unusable: " + grokBotAppSession.error);
       else print("Grok Bot app session: not found");
+      if (cursorEditorSession.usable) print("Cursor editor session: usable");
+      else if (cursorEditorSession.present) print("Cursor editor session: present but unusable: " + cursorEditorSession.error);
+      else print("Cursor editor session: not found");
       print("found:");
       print(found.length ? found.map((p) => "  " + p).join("\n") : "  (none)");
       print("candidates:");
